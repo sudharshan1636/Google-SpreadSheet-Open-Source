@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: white;
+    }
+
+    select, input[type="text"] {
+      width: 100%;
+      padding: 5px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: white;
+    }
+
+    button {
+      background-color: DodgerBlue; /* Changed background color to DodgerBlue */
+      color: black;
+      border: none;
+      border-radius: 4px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+      display: inline-block;
+    }
+
+    button:hover {
+      background-color: Violet;
+    }
+    
+    button.secondary {
+      background-color: Violet;
+    }
+
+    button.secondary:hover {
+      background-color: Violet;
+    }
+  </style>
+</head>
+<body>
+  <h1>Import CSV</h1>
+  <input type="file" id="csvFile" accept=".csv">
+  <br><br>
+<button onclick="loadCSV()" class="primary">Load CSV</button><br><br>
+  <label for="columns">Select Columns to Import:</label><br>
+  <select id="columns" multiple style="height: 150px; width: 100%;"></select><br><br>
+
+  <label for="filter">Filter Data:</label><br>
+  <input type="text" id="filter"><br><br>
+
+  <label for="destinationSheet">Choose Destination Sheet:</label><br>
+  <select id="destinationSheet" style="width: 100%;">
+    <option value="new">Create New Sheet</option>
+    <!-- List existing sheets in the dropdown -->
+  </select><br><br>
+
+  
+  <button onclick="importCSV()" class="primary">Import</button>
+  <button onclick="google.script.host.close()" class="secondary">Cancel</button>
+
+  <script>
+    // Function to update the columns dropdown
+    function updateColumnsList(columns) {
+      var select = document.getElementById('columns');
+      select.innerHTML = '';
+      for (var i = 0; i < columns.length; i++) {
+        var option = document.createElement('option');
+        option.value = columns[i];
+        option.text = columns[i];
+        select.appendChild(option);
+      }
+    }
+
+    // Function to update the destination sheet dropdown
+    function updateSheetList(sheets) {
+      var select = document.getElementById('destinationSheet');
+      select.innerHTML = '';
+      for (var i = 0; i < sheets.length; i++) {
+        var option = document.createElement('option');
+        option.value = sheets[i];
+        option.text = sheets[i];
+        select.appendChild(option);
+      }
+    }
+
+    // Load CSV file and update dropdowns
+    function loadCSV() {
+      var csvFile = document.getElementById('csvFile').files[0];
+      if (!csvFile) {
+        alert('Please select a CSV file.');
+        return;
+      }
+
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        var csvData = event.target.result;
+        google.script.run
+          .withSuccessHandler(updateColumnsList)
+          .parseCSV(csvData);
+
+        google.script.run
+          .withSuccessHandler(updateSheetList)
+          .getSheetNames();
+      };
+      reader.readAsText(csvFile);
+    }
+
+    // Import CSV data
+    function importCSV() {
+      var selectedOptions = Array.from(document.getElementById('columns').selectedOptions, option => option.value);
+      var filter = document.getElementById('filter').value;
+      var destinationSheet = document.getElementById('destinationSheet').value;
+      var csvFile = document.getElementById('csvFile').files[0];
+      if (!csvFile) {
+        alert('Please select a CSV file.');
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        var csvData = event.target.result;
+        google.script.run.importCSV(csvData, selectedOptions, filter, destinationSheet);
+      };
+      reader.readAsText(csvFile);
+    }
+  </script>
+</body>
+</html>
